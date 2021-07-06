@@ -1,5 +1,5 @@
 --------------------------------------------
--- STM32 Bootloader
+-- STM32 Bootloader - F4 variant
 --
 -- Johannes Hübner <dev@johanneshuebner.com>
 --------------------------------------------
@@ -10,7 +10,7 @@ interface flexibility and the independence from the BOOT pins are the
 main reasons for implementing this boot loader.
 
 New update protocol
-- 115200-8-N-2 (2 stop bits necessary when using a ZigBee module)
+- 115200-8-N-1
 
 1 Send '2' indicating version 2 bootloader, wait about 500ms for magic byte 0xAA
 2 If no reply goto 7
@@ -30,9 +30,9 @@ step 4.1
 Notes:
 - By checksum I mean the one calculated by the STMs integrated CRC32 unit.
 - The actual firmware has a reset command the cycle through the bootloader
-- The main firmware must be linked to start at address 0x08001000
-- The bootloader starts at address 0x08000000 and can be 4k in size 
-(right now its around 2.5k)
+- The main firmware must be linked to start at address 0x08020000
+- The bootloader starts at address 0x08000000 and can be 16k in size 
+(right now it's around 3.5k)
 
 --------------------------------------------
 -- STM32 Bootloader Updater

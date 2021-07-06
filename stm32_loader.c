@@ -52,7 +52,7 @@ static void clock_setup(void)
    rcc_periph_clock_enable(RCC_GPIOC);
    rcc_periph_clock_enable(RCC_GPIOD);
 
-   rcc_periph_clock_enable(RCC_USART3);
+   rcc_periph_clock_enable(USART_RCC);
    rcc_periph_clock_enable(RCC_DMA1);
    rcc_periph_clock_enable(RCC_CRC);
 
@@ -63,20 +63,20 @@ static void clock_setup(void)
 
 static void usart_setup(void)
 {
-    gpio_mode_setup(TERM_USART_TXPORT, GPIO_MODE_AF, GPIO_PUPD_NONE, TERM_USART_TXPIN);
-    gpio_set_af(TERM_USART_TXPORT, GPIO_AF7, TERM_USART_TXPIN);
+    gpio_mode_setup(USART_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, USART_PINS);
+    gpio_set_af(USART_PORT, GPIO_AF7, USART_PINS);
 
     /* Setup UART parameters. */
-    usart_set_baudrate(TERM_USART, USART_BAUDRATE);
-    usart_set_databits(TERM_USART, 8);
-    usart_set_stopbits(TERM_USART, USART_STOPBITS_1);
-    usart_set_mode(TERM_USART, USART_MODE_TX_RX);
-    usart_set_parity(TERM_USART, USART_PARITY_NONE);
-    usart_set_flow_control(TERM_USART, USART_FLOWCONTROL_NONE);
-    usart_enable_rx_dma(TERM_USART);
+    usart_set_baudrate(USART, USART_BAUDRATE);
+    usart_set_databits(USART, 8);
+    usart_set_stopbits(USART, USART_STOPBITS_1);
+    usart_set_mode(USART, USART_MODE_TX_RX);
+    usart_set_parity(USART, USART_PARITY_NONE);
+    usart_set_flow_control(USART, USART_FLOWCONTROL_NONE);
+    usart_enable_rx_dma(USART);
 
     /* Finally enable the USART. */
-    usart_enable(TERM_USART);
+    usart_enable(USART);
 }
 
 /** @brief setup DMA for serial reception
@@ -87,7 +87,7 @@ static void dma_setup(void *data, uint32_t len)
 {
    dma_disable_stream(DMA1, USART_DMA_CHAN);
    dma_set_transfer_mode(DMA1, USART_DMA_CHAN, DMA_SxCR_DIR_PERIPHERAL_TO_MEM);
-   dma_set_peripheral_address(DMA1, USART_DMA_CHAN, (uint32_t)&USART3_DR);
+   dma_set_peripheral_address(DMA1, USART_DMA_CHAN, (uint32_t)&USART_DR(USART));
    dma_set_memory_address(DMA1, USART_DMA_CHAN, (uint32_t)data);
    dma_set_number_of_data(DMA1, USART_DMA_CHAN, len * 4);
    dma_set_peripheral_size(DMA1, USART_DMA_CHAN, DMA_SxCR_PSIZE_8BIT);
@@ -148,15 +148,15 @@ int main(void)
    dma_setup(page_buffer, RECEIVE_WORDS);
 
    wait();
-   usart_send_blocking(TERM_USART, '2');
+   usart_send_blocking(USART, '2');
    wait();
-   char magic = usart_recv(TERM_USART);
+   char magic = usart_recv(USART);
 
    if (magic == BOOTLOADER_MAGIC)
    {
-      usart_send_blocking(TERM_USART, 'S');
+      usart_send_blocking(USART, 'S');
       wait();
-      char numPages = usart_recv(TERM_USART);
+      char numPages = usart_recv(USART);
 
       if (numPages > 0)
       {
@@ -173,7 +173,7 @@ int main(void)
 
          crc_reset();
          dma_setup(page_buffer, RECEIVE_WORDS);
-         usart_send_blocking(TERM_USART, 'P');
+         usart_send_blocking(USART, 'P');
 
          while (!dma_get_interrupt_flag(DMA1, USART_DMA_CHAN, DMA_TCIF))
          {
@@ -185,7 +185,7 @@ int main(void)
             {
                timeOut = DELAY_200;
                dma_setup(page_buffer, RECEIVE_WORDS);
-               usart_send_blocking(TERM_USART, 'T');
+               usart_send_blocking(USART, 'T');
             }
             iwdg_reset();
          }
@@ -193,7 +193,7 @@ int main(void)
          uint32_t crc = crc_calculate_block(page_buffer, RECEIVE_WORDS);
 
          dma_setup(&recvCrc, 1);
-         usart_send_blocking(TERM_USART, 'C');
+         usart_send_blocking(USART, 'C');
          while (!dma_get_interrupt_flag(DMA1, USART_DMA_CHAN, DMA_TCIF));
 
          if (crc == recvCrc)
@@ -204,16 +204,16 @@ int main(void)
          }
          else
          {
-            usart_send_blocking(TERM_USART, 'E');
+            usart_send_blocking(USART, 'E');
          }
       }
 
       flash_lock();
    }
 
-   usart_send_blocking(TERM_USART, 'D');
+   usart_send_blocking(USART, 'D');
    wait();
-   usart_disable(TERM_USART);
+   usart_disable(USART);
 
    void (*app_main)(void) = (void (*)(void)) *(volatile uint32_t*)(APP_FLASH_START + 4);
    SCB_VTOR = APP_FLASH_START;
