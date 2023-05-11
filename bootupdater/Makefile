@@ -28,11 +28,11 @@ OBJCOPY		= $(PREFIX)-objcopy
 OBJDUMP		= $(PREFIX)-objdump
 TOOLCHAIN_DIR = `dirname \`which $(CC)\``/../$(PREFIX)
 CFLAGS		= -Os -Wall -Wextra -I../libopencm3/include -fno-common -fno-builtin \
-		  -mcpu=cortex-m3 -mthumb -std=gnu99 -ffunction-sections -fdata-sections
+		  -mcpu=cortex-m3 -mthumb -std=gnu99 -ffunction-sections -fdata-sections -ggdb3
 CPPFLAGS    = -Os -Wall -Wextra -I../libopencm3/include -fno-common \
-		 -ffunction-sections -fdata-sections -fno-builtin -fno-rtti -fno-exceptions -fno-unwind-tables -mcpu=cortex-m3 -mthumb
+		 -ffunction-sections -fdata-sections -fno-builtin -fno-rtti -fno-exceptions -fno-unwind-tables -mcpu=cortex-m3 -mthumb -ggdb3
 LDSCRIPT	= $(BINARY).ld
-LDFLAGS         = -L../libopencm3/lib -T$(LDSCRIPT) -nostartfiles -Wl,--gc-sections,-Map,linker.map
+LDFLAGS         = -L../libopencm3/lib -T$(LDSCRIPT) -nostartfiles -Wl,--gc-sections,-Map,linker.map -ggdb3
 OBJS		= $(BINARY).o
 
 

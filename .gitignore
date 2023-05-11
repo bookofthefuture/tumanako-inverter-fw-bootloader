@@ -1,0 +1,6 @@
+*.o
+*.hex
+*.bin
+*.map
+stm32_loader
+bootupdater/stm32_bootupdater
