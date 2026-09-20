@@ -177,10 +177,19 @@ int main(void)
    usart_setup();
    dma_setup(page_buffer, receiveWords);
 
-   wait();
    usart_send_blocking(TERM_USART, '2');
-   wait();
-   char magic = usart_recv(TERM_USART);
+
+   char magic = 0;
+   uint32_t timeOut = DELAY_200;
+
+   while (timeOut > 0 && magic != BOOTLOADER_MAGIC)
+   {
+      if (usart_get_flag(TERM_USART, USART_SR_RXNE))
+         magic = usart_recv(TERM_USART);
+      else
+         timeOut--;
+      iwdg_reset();
+   }
 
    if (magic == BOOTLOADER_MAGIC)
    {
